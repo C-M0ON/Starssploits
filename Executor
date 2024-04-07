@@ -1,0 +1,111 @@
+-- Create a ScreenGui to hold the GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "LoadstringExecutorGUI"
+gui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- Create a Frame to contain the GUI elements
+local frame = Instance.new("Frame")
+frame.Name = "MainFrame"
+frame.Size = UDim2.new(0.3, 0, 0.3, 0)
+frame.Position = UDim2.new(0.5, -frame.Size.X.Offset / 2, 0.5, -frame.Size.Y.Offset / 2)
+frame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+frame.BorderSizePixel = 2
+frame.BorderColor3 = Color3.fromRGB(255, 255, 255)
+frame.Parent = gui
+
+-- Create a TextLabel for "stars"
+local starsLabel = Instance.new("TextLabel")
+starsLabel.Name = "StarsLabel"
+starsLabel.Size = UDim2.new(1, 0, 0.1, 0)
+starsLabel.Position = UDim2.new(0, 0, 0, 0)
+starsLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50) -- Background color matches frame
+starsLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+starsLabel.TextSize = 18
+starsLabel.Font = Enum.Font.SourceSansBold
+starsLabel.Text = "Stars"
+starsLabel.Parent = frame
+
+-- Create a TextBox for inputting Lua code
+local textBox = Instance.new("TextBox")
+textBox.Name = "CodeInput"
+textBox.Size = UDim2.new(0.9, 0, 0.6, 0)
+textBox.Position = UDim2.new(0.05, 0, 0.15, 0)
+textBox.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+textBox.BorderSizePixel = 0
+textBox.TextWrapped = true
+textBox.Text = "-- Enter Lua code here\n\nprint('Hello, world!')"
+textBox.Parent = frame
+
+-- Create a Button to execute the Lua code
+local executeButton = Instance.new("TextButton")
+executeButton.Name = "ExecuteButton"
+executeButton.Size = UDim2.new(0.4, 0, 0.1, 0)
+executeButton.Position = UDim2.new(0.05, 0, 0.8, 0)
+executeButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+executeButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+executeButton.Text = "Execute"
+executeButton.Parent = frame
+
+-- Create a TextButton to clear the TextBox
+local clearButton = Instance.new("TextButton")
+clearButton.Name = "ClearButton"
+clearButton.Size = UDim2.new(0.4, 0, 0.1, 0)
+clearButton.Position = UDim2.new(0.55, 0, 0.8, 0)
+clearButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+clearButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+clearButton.Text = "Clear"
+clearButton.Parent = frame
+
+-- Function to execute the Lua code
+local function executeCode()
+    local code = textBox.Text
+    local success, result = pcall(loadstring(code))
+    if not success then
+        print("Error:", result)
+    else
+        print("Executed") -- Print "executed" into the console
+    end
+end
+
+-- Function to clear the TextBox
+local function clearTextBox()
+    textBox.Text = "" -- Clear the text box
+end
+
+-- Connect the executeCode function to the button click event
+executeButton.MouseButton1Click:Connect(executeCode)
+
+-- Connect the clearTextBox function to the clear button click event
+clearButton.MouseButton1Click:Connect(clearTextBox)
+
+-- Make the frame draggable
+local dragging
+local dragInput
+local dragStart
+local startPos
+
+frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+frame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
